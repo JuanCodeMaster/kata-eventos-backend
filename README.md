@@ -1,167 +1,156 @@
-# 📚 README - Plataforma de Eventos (Backend)
+# 🧾 Plataforma de Eventos - Backend
 
-## ✨ Descripción General
+## 📌 Descripción
+Este proyecto es un backend en Spring Boot que permite gestionar eventos, usuarios y reservas en una plataforma de eventos.
 
-Este es el **backend** de la plataforma de eventos que permite a los usuarios:
-- Ver eventos disponibles
-- Reservar cupos
-- Cancelar eventos (borrado lógico)
-- Consultar sus reservas
-- Administrar eventos con imágenes en base64
-
-La aplicación está desarrollada con:
-- **Java 17**
-- **Spring Boot 3**
-- **PostgreSQL**
-- **Maven**
-- **JWT** para autenticación
-
----
-
-## 🔧 Tecnologías Usadas
-
-- Spring Boot 3
-- Spring Security
-- Spring Data JPA
-- PostgreSQL
-- JWT (Json Web Token)
-- Maven
-- Lombok
-
----
-
-## 🌐 Endpoints Principales
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET    | `/api/events` | Listar todos los eventos activos |
-| GET    | `/api/events/{id}` | Obtener detalle de un evento por ID |
-| POST   | `/api/events` | Crear un nuevo evento |
-| PUT    | `/api/events/{id}` | Actualizar un evento |
-| DELETE | `/api/events/{id}` | Cancelar un evento (borrado lógico) |
-| POST   | `/api/reservations` | Realizar una reserva |
-| GET    | `/api/reservations/user/{email}` | Listar reservas de un usuario |
-
----
-
-## 📝 Requisitos Previos
-
-- Java 17 o superior
-- Maven 3.8+
-- PostgreSQL
+Cuenta con funcionalidades para:
+- Registrar eventos con imágenes en Base64.
+- Reservar cupos a eventos por parte de los usuarios.
+- Cancelar eventos de forma lógica.
+- Visualizar eventos por usuario.
 
 ---
 
 ## 📁 Estructura del Proyecto
 
+```
+└── backend/
+    ├── controller/          # Controladores REST
+    ├── dto/                 # Objetos de transferencia (DTOs)
+    ├── model/               # Entidades JPA
+    ├── repository/          # Interfaces de persistencia
+    ├── service/             # Lógica de negocio
+    ├── security/            # Seguridad con JWT
+    └── ...
+```
+
+---
+
+## 🚀 Endpoints
+
+### 🎟️ Eventos
+
+#### ➕ Crear Evento
+`POST /api/events`
+```json
+{
+  "name": "Coldplay Live",
+  "description": "El evento del año",
+  "date": "2025-10-10",
+  "capacity": 500,
+  "imageBase64": "data:image/jpeg;base64,/9j/4AAQ..."
+}
+```
+📎 **Respuesta:** `201 Created`
+
+---
+
+#### 📄 Listar Eventos (Solo activos)
+`GET /api/events`
+📎 **Respuesta:** Array de eventos con status = ACTIVO
+
+---
+
+#### 🔍 Obtener Evento por ID
+`GET /api/events/{id}`
+📎 **Respuesta:** Evento con campos completos
+
+---
+
+#### ✏️ Editar Evento
+`PUT /api/events/{id}`
+```json
+{
+  "name": "Nombre actualizado",
+  "description": "Nueva descripción",
+  "date": "2025-11-01",
+  "capacity": 200,
+  "imageBase64": "...opcional..."
+}
+```
+📎 **Respuesta:** Evento actualizado
+
+---
+
+#### ❌ Cancelar Evento (delete lógico)
+`DELETE /api/events/{id}`
+📎 Cambia su `status` a `CANCELADO`
+
+---
+
+#### ✅ Reactivar Evento
+`PATCH /api/events/{id}/activate`
+📎 Cambia su `status` a `ACTIVO`
+
+---
+
+### 👥 Reservas
+
+#### ➕ Crear Reserva
+`POST /api/reservations`
+```json
+{
+  "eventId": 1,
+  "userEmail": "usuario@example.com",
+  "eventStatus": "ACTIVO"
+}
+```
+📎 **Respuesta:**
+```json
+{
+  "id": 3,
+  "userEmail": "usuario@example.com",
+  "eventName": "Coldplay Live"
+}
+```
+
+---
+
+#### 📄 Listar Reservas por Usuario
+`GET /api/reservations/user/{email}`
+📎 Muestra nombre del evento, correo, y si está cancelado
+
+---
+
+## 🗄️ Base de Datos
+
+Puedes importar el archivo `init_db.sql` (exportado desde pgAdmin) para tener los eventos, usuarios y reservas precargadas.
+
+1. Abre pgAdmin.
+2. Crea una base llamada `event_platform`.
+3. Haz clic derecho en la base → Query Tool.
+4. Carga y ejecuta `init_db.sql`.
+
+---
+
+## 🔐 Seguridad
+- Implementado JWT.
+- Autenticación por token al consumir los endpoints protegidos.
+
+---
+
+## ⚙️ Tecnologías
+- Spring Boot 3
+- PostgreSQL
+- JPA (Hibernate)
+- JWT
+- Maven
+
+---
+
+## 📦 Ejecución Local
 ```bash
-/backend-eventos
-│
-├── src/
-│   ├── main/java/com/davivienda/kata/
-│   │   ├── controller/
-│   │   ├── dto/
-│   │   ├── model/
-│   │   ├── repository/
-│   │   └── service/
-│   │       └── impl/
-│   └── resources/
-│       └── application.properties
-│
-├── db/init_db.sql    # Script para poblar la base de datos
-└── pom.xml
+./mvnw spring-boot:run
 ```
+
+> Asegúrate de tener PostgreSQL corriendo y las credenciales configuradas en `application.properties`.
 
 ---
 
-## 👁️ Seguridad y Autenticación
-
-- Se utiliza JWT (Json Web Token)
-- Los endpoints están protegidos con Spring Security
-- Para consumir endpoints, debes pasar el token en el header:
-```http
-Authorization: Bearer <token>
-```
+## ✅ Estado
+✅ Funcionalidad completa
+🎯 Próximos pasos: unit tests, validaciones adicionales, frontend deploy
 
 ---
 
-## 📆 Lógica de Cancelación de Eventos
-
-- Al realizar un `DELETE /api/events/{id}` no se elimina el evento de la base de datos.
-- En su lugar, el campo `status` se actualiza a `CANCELADO`.
-- En el frontend:
-  - Los eventos `ACTIVOS` se muestran en el feed principal.
-  - Los eventos `CANCELADOS` aparecen en la sección de reservas con un badge indicando su estado.
-
----
-
-## 📊 Poblar la Base de Datos
-
-La base de datos incluye eventos, usuarios y reservas de prueba.
-
-### ✅ Cargar Base de Datos desde el archivo SQL
-
-1. Abrir **pgAdmin** o cualquier cliente de PostgreSQL.
-2. Crear una base de datos vacía llamada `event_platform`.
-3. Importar el archivo `init_db.sql` desde:
-```bash
-/db/init_db.sql
-```
-
-### Usando consola con `psql`:
-```bash
-psql -U postgres -d event_platform -f db/init_db.sql
-```
-
----
-
-## 🎓 Ejecutar la Aplicación
-
-1. Clonar el repositorio:
-```bash
-git clone https://github.com/TU_USUARIO/backend-eventos.git
-cd backend-eventos
-```
-
-2. Compilar el proyecto:
-```bash
-mvn clean install
-```
-
-3. Ejecutar la aplicación:
-```bash
-mvn spring-boot:run
-```
-
-La API estará disponible en:
-```
-http://localhost:8082
-```
-
----
-
-## 🚀 Docker (Próximamente)
-
-- Se planea agregar soporte para Docker y Docker Compose
-- En el futuro podrás levantar PostgreSQL + backend con un solo comando
-
----
-
-## 🛠️ Mantenimiento y Colaboración
-
-- Pull requests son bienvenidas
-- Issues pueden ser creadas para errores, sugerencias o mejoras
-
----
-
-## 📥 Autor
-
-**Juan José Vélez Álvarez**  
-_Solution Architect & Fullstack Dev_
-
-> Proyecto para la Kata FullStack de Eventos (Davivienda)
-
----
-
-❤️ Gracias por visitar este proyecto. ¡Contribuciones y estrellas son bienvenidas!
-
+¿Dudas o sugerencias? ¡Contribuye o crea un issue en el repo! 🚀
