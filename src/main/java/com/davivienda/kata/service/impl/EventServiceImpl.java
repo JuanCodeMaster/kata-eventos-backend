@@ -39,6 +39,8 @@ public class EventServiceImpl implements IEventService {
         event.setReservedCount(0);
         event.setImageBase64(dto.getImageBase64());
 
+        event.setStatus("ACTIVO");
+
         Event saved = repository.save(event);
         return toDto(saved);
     }
